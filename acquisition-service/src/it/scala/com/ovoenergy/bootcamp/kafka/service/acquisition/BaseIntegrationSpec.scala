@@ -9,6 +9,7 @@ import com.whisk.docker.scalatest.DockerTestKit
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Assertion, Matchers, WordSpec}
 import com.ovoenergy.bootcamp.kafka.common.serde._
+import com.ovoenergy.comms.dockertestkit.{KafkaKit, ZookeeperKit}
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
 
 import scala.concurrent.Future
@@ -25,6 +26,8 @@ abstract class BaseIntegrationSpec
     with CustomerServiceKit
     with AccountServiceKit
     with AcquisitionServiceKit
+    with ZookeeperKit
+    with KafkaKit
     with RequestBuilding
     with FailFastCirceSupport {
 
