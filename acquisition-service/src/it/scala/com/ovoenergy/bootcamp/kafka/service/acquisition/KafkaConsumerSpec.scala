@@ -1,6 +1,10 @@
 package com.ovoenergy.bootcamp.kafka.service.acquisition
 
-import com.ovoenergy.comms.dockertestkit.{KafkaKit, ZookeeperKit}
+import com.ovoenergy.bootcamp.kafka.common.Randoms
+import com.ovoenergy.bootcamp.kafka.domain.Acquisition.AcquisitionId
+import com.ovoenergy.bootcamp.kafka.domain.{Acquisition, Arbitraries}
+import com.ovoenergy.comms.dockertestkit.{KafkaKit, SchemaRegistryKit, ZookeeperKit}
+import com.ovoenergy.kafka.serialization.avro4s._
 import com.whisk.docker.impl.dockerjava.DockerKitDockerJava
 import com.whisk.docker.scalatest.DockerTestKit
 import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig, NewTopic}
@@ -18,10 +22,13 @@ class KafkaConsumerSpec extends WordSpec
   with DockerTestKit
   with DockerKitDockerJava
   with ZookeeperKit
-  with KafkaKit {
+  with SchemaRegistryKit
+  with KafkaKit
+  with Randoms
+  with Arbitraries {
 
   type Key = String
-  type Value = String
+  type Value = Acquisition
 
   val topic = "test-topic-1"
 
@@ -40,7 +47,7 @@ class KafkaConsumerSpec extends WordSpec
         ProducerConfig.CLIENT_ID_CONFIG -> "KafkaConsumerSpec"
       ).asJava,
       new StringSerializer,
-      new StringSerializer
+      avroBinarySchemaIdSerializer[Value](schemaRegistryEndpoint, isKey = false, includesFormatByte = true)
     )
 
     consumer = new KafkaConsumer[Key, Value](
@@ -52,7 +59,7 @@ class KafkaConsumerSpec extends WordSpec
         ConsumerConfig.CLIENT_ID_CONFIG -> "KafkaConsumerSpec"
       ).asJava,
       new StringDeserializer,
-      new StringDeserializer
+      avroBinarySchemaIdDeserializer[Value](schemaRegistryEndpoint, isKey = false, includesFormatByte = true)
     )
 
     adminClient = AdminClient.create(
@@ -75,9 +82,11 @@ class KafkaConsumerSpec extends WordSpec
 
       adminClient.createTopics(List(new NewTopic(topic, 6, 1)).asJava).all().get()
 
-      Future.sequence((0 to 9).map(i =>
-        produceRecord(producer, new ProducerRecord[Key, Value](topic, s"$i", s"test-$i"))
-      )).futureValue(timeout(5.seconds))
+
+      Future.sequence((0 to 9).map(i => {
+        val ac = random[Acquisition].copy(id = AcquisitionId(s"$i"))
+        produceRecord(producer, new ProducerRecord[Key, Value](topic, ac.id.value, ac))
+      })).futureValue(timeout(5.seconds))
 
       consumer.subscribe(Set(topic).asJava)
 

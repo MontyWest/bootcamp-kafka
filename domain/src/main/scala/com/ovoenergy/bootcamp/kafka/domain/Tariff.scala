@@ -1,3 +1,3 @@
 package com.ovoenergy.bootcamp.kafka.domain
 
-case class Tariff(value: String) extends AnyVal
+case class Tariff(value: String)

@@ -3,18 +3,13 @@ package com.ovoenergy.bootcamp.kafka.service.acquisition
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.client.RequestBuilding
 import akka.http.scaladsl.unmarshalling.{Unmarshal, Unmarshaller}
-import com.ovoenergy.bootcamp.kafka.domain.{
-  Account,
-  Acquisition,
-  CreateAcquisition,
-  Customer
-}
+import com.ovoenergy.bootcamp.kafka.domain.{Account, Acquisition, CreateAcquisition, Customer}
 import com.whisk.docker.impl.dockerjava.DockerKitDockerJava
 import com.whisk.docker.scalatest.DockerTestKit
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Assertion, Matchers, WordSpec}
 import com.ovoenergy.bootcamp.kafka.common.serde._
-import com.ovoenergy.comms.dockertestkit.{KafkaKit, ZookeeperKit}
+import com.ovoenergy.comms.dockertestkit.{KafkaKit, SchemaRegistryKit, ZookeeperKit}
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
 
 import scala.concurrent.Future
@@ -33,6 +28,7 @@ abstract class BaseIntegrationSpec
     with AcquisitionServiceKit
     with ZookeeperKit
     with KafkaKit
+    with SchemaRegistryKit
     with RequestBuilding
     with FailFastCirceSupport {
 

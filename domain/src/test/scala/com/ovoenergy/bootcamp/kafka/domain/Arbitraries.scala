@@ -26,16 +26,14 @@ trait Arbitraries {
 
   )
 
-  implicit lazy val arbString: Arbitrary[String] = Arbitrary(nonEmptyListOf(alphaStr).map(_.mkString))
+  implicit lazy val arbString: Arbitrary[String] = Arbitrary(
+    listOfN(15, alphaNumChar).map(xs => xs.mkString)
+  )
 
   implicit lazy val arbTariff: Arbitrary[Tariff] = Arbitrary(oneOf("Fixed", "Green", "Variable").map(Tariff.apply))
 
   implicit lazy val arbEmailAddress: Arbitrary[EmailAddress] = Arbitrary(
-    (for {
-      topLevelDomain <- oneOf("com", "net", "org", "co.uk")
-      secondLevelDomain <- alphaLowerStr
-      name <- alphaNumStr
-    } yield s"$name@$secondLevelDomain.$topLevelDomain").map(EmailAddress.unsafeFromString)
+    Gen.oneOf("email@gmail.com", "email1@gmal.com").map(EmailAddress.unsafeFromString)
   )
 
   implicit lazy val arbCustomerId: Arbitrary[CustomerId] = Arbitrary(Gen.delay(const(CustomerId.unique())))

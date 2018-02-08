@@ -6,10 +6,10 @@ case class PostalAddress(lineOne: AddressLine, lineTwo: Option[AddressLine], pos
 
 object PostalAddress {
 
-  case class AddressLine(value: String) extends AnyVal
+  case class AddressLine(value: String)
 
-  case class PostCode(value: String) extends AnyVal
+  case class PostCode(value: String)
 
-  case class City(value: String) extends AnyVal
+  case class City(value: String)
 
 }

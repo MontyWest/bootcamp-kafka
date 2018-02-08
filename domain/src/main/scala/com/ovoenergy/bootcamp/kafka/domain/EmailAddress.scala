@@ -1,6 +1,6 @@
 package com.ovoenergy.bootcamp.kafka.domain
 
-case class EmailAddress private(value: String) extends AnyVal
+case class EmailAddress(value: String)
 
 object EmailAddress {
 

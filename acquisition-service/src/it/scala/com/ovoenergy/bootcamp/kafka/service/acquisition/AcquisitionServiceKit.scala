@@ -1,6 +1,6 @@
 package com.ovoenergy.bootcamp.kafka.service.acquisition
 
-import com.ovoenergy.comms.dockertestkit.KafkaKit
+import com.ovoenergy.comms.dockertestkit.{KafkaKit, SchemaRegistryKit}
 import com.whisk.docker.{ContainerLink, DockerContainer, DockerKit, DockerReadyChecker}
 import org.scalatest.concurrent.{Futures, ScalaFutures}
 
@@ -8,7 +8,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 
 trait AcquisitionServiceKit extends DockerKit {
-  _: KafkaKit with ScalaFutures =>
+  _: KafkaKit with SchemaRegistryKit with ScalaFutures =>
 
   val DefaultAcquisitionServicePort: Int = 8080
 
@@ -27,6 +27,7 @@ trait AcquisitionServiceKit extends DockerKit {
       .withEnv(
         s"HTTP_PORT=$DefaultAcquisitionServicePort",
         s"KAFKA_ENDPOINT=$kafkaEndpoint",
+        s"SCHEMA_REGISTRY_ENDPOINT=$schemaRegistryEndpoint"
       )
       .withReadyChecker(
         DockerReadyChecker

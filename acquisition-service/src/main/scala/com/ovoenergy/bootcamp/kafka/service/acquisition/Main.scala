@@ -20,6 +20,8 @@ import scala.io.StdIn
 import scala.util.{Failure, Success}
 import scala.collection.JavaConverters._
 
+import com.ovoenergy.kafka.serialization.avro4s._
+
 object Main extends App {
 
   val log = LoggerFactory.getLogger(getClass)
@@ -28,17 +30,19 @@ object Main extends App {
     env[Option[String]]("HTTP_HOST").orElse(prop[Option[String]]("http.host")),
     env[Option[Int]]("HTTP_PORT").orElse(prop[Option[Int]]("http.port")),
     env[String]("KAFKA_ENDPOINT").orElse(prop[String]("kafka.endpoint")),
+    env[String]("SCHEMA_REGISTRY_ENDPOINT").orElse(prop[String]("schema-registry.endpoint"))
   )(
-    (host, port, kafkaEndpoint) =>
+    (host, port, kafkaEndpoint, schemaRegistryEndpoint) =>
       Settings(httpHost = host.getOrElse("0.0.0.0"),
         httpPort = port.getOrElse(8081),
-        kafkaEndpoint = kafkaEndpoint)).orThrow()
+        kafkaEndpoint = kafkaEndpoint,
+        schemaRegistryEndpoint = schemaRegistryEndpoint)).orThrow()
 
   implicit val system: ActorSystem = ActorSystem()
   implicit val materializer: Materializer = ActorMaterializer()
   implicit val ec: ExecutionContext = system.dispatcher
 
-  val producer = new KafkaProducer[String, String](
+  val producer = new KafkaProducer[String, Acquisition](
     Map[String, AnyRef](
       ProducerConfig.BOOTSTRAP_SERVERS_CONFIG -> settings.kafkaEndpoint,
       ProducerConfig.ACKS_CONFIG->"all",
@@ -46,7 +50,7 @@ object Main extends App {
       ProducerConfig.CLIENT_ID_CONFIG -> "acquisition-service"
     ).asJava,
     new StringSerializer,
-    new StringSerializer
+    avroBinarySchemaIdSerializer[Acquisition](settings.schemaRegistryEndpoint, isKey = false, includesFormatByte = true)
   )
 
   val routes: Route = AcquisitionService.routes(
@@ -67,8 +71,8 @@ object Main extends App {
   }
 
   def produceAcquisition(acq: Acquisition): Future[Unit] = {
-    val record = new ProducerRecord[String, String]("acquisition", acq.id.value, acq.id.value)
-    produceRecord[String, String](producer, record).map(_ => ())
+    val record = new ProducerRecord[String, Acquisition]("acquisition", acq.id.value, acq)
+    produceRecord[String, Acquisition](producer, record).map(_ => ())
   }
 
   def produceRecord[K,V](producer: Producer[K, V], record: ProducerRecord[K, V]): Future[RecordMetadata] = {

@@ -4,8 +4,15 @@ import akka.http.scaladsl.client.RequestBuilding
 import com.ovoenergy.bootcamp.kafka.common.Randoms
 import com.ovoenergy.bootcamp.kafka.domain.{Account, Arbitraries, CreateAcquisition, Customer}
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
+import org.scalatest.concurrent.Eventually
 
-class AcquisitionSpec extends BaseIntegrationSpec with RequestBuilding with FailFastCirceSupport with Arbitraries with Randoms {
+class AcquisitionSpec
+  extends BaseIntegrationSpec
+    with RequestBuilding
+    with FailFastCirceSupport
+    with Arbitraries
+    with Randoms
+    with Eventually {
 
   "AcquisitionService" when {
     "an acquisition is created" should {
@@ -24,7 +31,9 @@ class AcquisitionSpec extends BaseIntegrationSpec with RequestBuilding with Fail
             customers <- fetchCustomers()
           } yield acquisition->customers
         ){case (acquisition, customers) =>
+          eventually {
             customers.find(_.acquisitionId == acquisition.id) shouldBe a[Some[Customer]]
+          }
         }
       }
 
@@ -36,7 +45,9 @@ class AcquisitionSpec extends BaseIntegrationSpec with RequestBuilding with Fail
             accounts <- fetchAccounts()
           } yield acquisition->accounts
         ){case (acquisition, accounts) =>
-          accounts.find(_.acquisitionId == acquisition.id) shouldBe a[Some[Account]]
+          eventually {
+            accounts.find(_.acquisitionId == acquisition.id) shouldBe a[Some[Account]]
+          }
         }
       }
     }

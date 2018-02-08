@@ -16,7 +16,7 @@ case class Acquisition(id: AcquisitionId,
 
 object Acquisition {
 
-  case class AcquisitionId(value: String) extends AnyVal
+  case class AcquisitionId(value: String)
 
   object AcquisitionId {
 

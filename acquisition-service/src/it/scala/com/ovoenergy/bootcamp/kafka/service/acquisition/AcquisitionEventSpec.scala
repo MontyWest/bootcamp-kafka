@@ -10,7 +10,7 @@ import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
 import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig}
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerConfig, KafkaConsumer}
 import org.apache.kafka.clients.producer.{KafkaProducer, Producer, ProducerConfig}
-import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
+import org.apache.kafka.common.serialization.{ByteArrayDeserializer, StringDeserializer, StringSerializer}
 import org.scalatest.concurrent.Eventually
 
 import scala.collection.JavaConverters._
@@ -24,7 +24,7 @@ class AcquisitionEventSpec
     with Eventually {
 
   type Key = String
-  type Value = String
+  type Value = Array[Byte]
 
   var consumer: Consumer[Key, Value] = _
 
@@ -40,7 +40,7 @@ class AcquisitionEventSpec
         ConsumerConfig.CLIENT_ID_CONFIG -> "KafkaConsumerSpec"
       ).asJava,
       new StringDeserializer,
-      new StringDeserializer
+      new ByteArrayDeserializer
     )
 
   }
